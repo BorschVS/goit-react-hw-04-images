@@ -35,6 +35,7 @@ class App extends Component {
 
   handleFormSubmit = async searchQuery => {
     try {
+      this.setState({ gallery: [] });
       const gallery = await this.getImages(searchQuery, 1);
       this.setState({
         searchQuery,
@@ -45,6 +46,13 @@ class App extends Component {
       console.error(error);
     }
   };
+
+  async componentDidUpdate(_, prevState) {
+    if (prevState.searchQuery !== this.state.searchQuery) {
+      const { searchQuery, page } = this.state;
+      await this.getImages(searchQuery, page);
+    }
+  }
 
   handleLoadMore = async () => {
     const { searchQuery, page } = this.state;
@@ -67,7 +75,7 @@ class App extends Component {
     return (
       <div className={css.App}>
         <Searchbar onSubmit={this.handleFormSubmit} />
-        {gallery && <ImageGallery gallery={gallery} />}
+        {gallery.length > 0 && <ImageGallery gallery={gallery} />}
         {loading && <Loader />}
         {gallery.length > 0 && !loading && (
           <Button onLoadMore={this.handleLoadMore} />

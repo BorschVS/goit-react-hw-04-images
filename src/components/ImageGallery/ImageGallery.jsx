@@ -2,7 +2,7 @@ import ImageGalleryItem from 'components/ImageGalleryItem';
 import css from './ImageGallery.module.css';
 
 export default function ImageGallery({ gallery }) {
-  function removeDuplicateIds(gallery) {
+  const removeDuplicateIds = gallery => {
     const uniqueIds = new Set();
     return gallery.filter(item => {
       if (!uniqueIds.has(item.id)) {
@@ -11,7 +11,7 @@ export default function ImageGallery({ gallery }) {
       }
       return false;
     });
-  }
+  };
 
   const uniqueGallery = removeDuplicateIds(gallery);
   return (
