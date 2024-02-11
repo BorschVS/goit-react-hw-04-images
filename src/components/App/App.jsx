@@ -16,6 +16,14 @@ class App extends Component {
     page: 1,
   };
 
+  async componentDidUpdate(_, prevState) {
+    const { searchQuery, page } = this.state;
+
+    if (prevState.searchQuery !== searchQuery) {
+      await this.getImages(searchQuery, page);
+    }
+  }
+
   getImages = async (searchQuery, page) => {
     try {
       this.setState({ loading: true });
@@ -23,13 +31,13 @@ class App extends Component {
       this.setState(({ gallery, page }) => ({
         searchQuery,
         gallery: [...gallery, ...response.hits],
-        loading: false,
         page,
       }));
-      console.log(searchQuery);
       return response.hits;
     } catch (error) {
       console.log(error);
+    } finally {
+      this.setState({ loading: false });
     }
   };
 
@@ -46,13 +54,6 @@ class App extends Component {
       console.error(error);
     }
   };
-
-  async componentDidUpdate(_, prevState) {
-    if (prevState.searchQuery !== this.state.searchQuery) {
-      const { searchQuery, page } = this.state;
-      await this.getImages(searchQuery, page);
-    }
-  }
 
   handleLoadMore = async () => {
     const { searchQuery, page } = this.state;
