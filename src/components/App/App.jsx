@@ -2,6 +2,8 @@ import { Component } from 'react';
 import Searchbar from '../Searchbar';
 import ImageGallery from '../ImageGallery';
 import Loader from 'components/Loader';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 //
 import * as API from '../../services/api';
 //
@@ -19,7 +21,7 @@ class App extends Component {
   async componentDidUpdate(_, prevState) {
     const { searchQuery, page } = this.state;
 
-    if (prevState.searchQuery !== searchQuery) {
+    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
       await this.getImages(searchQuery, page);
     }
   }
@@ -35,40 +37,25 @@ class App extends Component {
       }));
       return response.hits;
     } catch (error) {
-      console.log(error);
+      throw new Error(toast.error(error.message));
     } finally {
       this.setState({ loading: false });
     }
   };
 
-  handleFormSubmit = async searchQuery => {
-    try {
-      this.setState({ gallery: [] });
-      const gallery = await this.getImages(searchQuery, 1);
-      this.setState({
-        searchQuery,
-        gallery,
-        page: 1,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  handleFormSubmit = searchQuery => {
+    this.setState({
+      gallery: [],
+      searchQuery,
+      page: 1,
+    });
   };
 
-  handleLoadMore = async () => {
-    const { searchQuery, page } = this.state;
-    const nextPage = page + 1;
-
-    try {
-      await this.getImages(searchQuery, nextPage);
-
-      this.setState(({ gallery }) => ({
-        gallery,
-        page: nextPage,
-      }));
-    } catch (error) {
-      console.log(error);
-    }
+  handleLoadMore = () => {
+    this.setState(({ gallery, page }) => ({
+      gallery,
+      page: page + 1,
+    }));
   };
 
   render() {
@@ -81,6 +68,7 @@ class App extends Component {
         {gallery.length > 0 && !loading && (
           <Button onLoadMore={this.handleLoadMore} />
         )}
+        <ToastContainer />
       </div>
     );
   }
