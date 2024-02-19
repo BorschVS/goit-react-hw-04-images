@@ -1,47 +1,46 @@
-import { Component } from 'react';
+import { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import css from './Searchbar.module.css';
 
-class Searchbar extends Component {
-  state = {
-    searchQuery: '',
-  };
+export default function Searchbar({ onSubmit }) {
+  const [searchQuery, setSearchQuery] = useState('');
 
-  handleNameChange = e =>
-    this.setState({ searchQuery: e.target.value.toLowerCase() });
-
-  handleSubmit = e => {
-    e.preventDefault();
-    if (this.state.searchQuery.trim() === '') {
-      return alert('Введите что-нибудь нормальное');
-    }
-    this.props.onSubmit(this.state.searchQuery);
-
-    this.setState({ searchQuery: '' });
-  };
-
-  render() {
-    const { searchQuery } = this.state;
-    return (
-      <header className={css.Searchbar}>
-        <form className={css.SearchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={css.SearchFormButton}>
-            <span className={css.SearchButtonLabel}>Search</span>
-          </button>
-
-          <input
-            className={css.SearchFormInput}
-            name="searchQuery"
-            value={searchQuery}
-            onChange={this.handleNameChange}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </form>
-      </header>
-    );
+  function handleQueryChange(e) {
+    setSearchQuery(e.target.value.toLowerCase());
   }
-}
 
-export default Searchbar;
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (searchQuery === '') {
+      return toast.warning('Введите что-нибудь нормальное');
+    }
+    onSubmit(searchQuery);
+
+    setSearchQuery('');
+  }
+
+  return (
+    <header className={css.Searchbar}>
+      <form className={css.SearchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={css.SearchFormButton}>
+          <span className={css.SearchButtonLabel}>Search</span>
+        </button>
+
+        <input
+          className={css.SearchFormInput}
+          name="searchQuery"
+          value={searchQuery}
+          onChange={handleQueryChange}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </form>
+      <ToastContainer />
+    </header>
+  );
+}

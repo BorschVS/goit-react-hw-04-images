@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useReducer, useEffect, useState } from 'react';
 import Searchbar from '../Searchbar';
 import ImageGallery from '../ImageGallery';
 import Loader from 'components/Loader';
@@ -10,68 +10,133 @@ import * as API from '../../services/api';
 import css from './App.module.css';
 import Button from 'components/Button';
 
-class App extends Component {
-  state = {
-    searchQuery: '',
-    gallery: [],
-    loading: false,
-    page: 1,
-  };
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [gallery, setGallery] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  async componentDidUpdate(_, prevState) {
-    const { searchQuery, page } = this.state;
-
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      await this.getImages(searchQuery, page);
+  useEffect(() => {
+    if (searchQuery === '') {
+      return;
     }
-  }
+    getImages(searchQuery, page);
+  }, [searchQuery, page]);
 
-  getImages = async (searchQuery, page) => {
+  async function getImages(query, page) {
     try {
-      this.setState({ loading: true });
-      const response = await API.getImages(searchQuery, page);
-      this.setState(({ gallery, page }) => ({
-        searchQuery,
-        gallery: [...gallery, ...response.hits],
-        page,
-      }));
+      setLoading(true);
+      const response = await API.getImages(query, page);
+      setGallery(gallery => [...gallery, ...response.hits]);
+      setPage(page);
       return response.hits;
     } catch (error) {
       throw new Error(toast.error(error.message));
     } finally {
-      this.setState({ loading: false });
+      setLoading(false);
     }
-  };
-
-  handleFormSubmit = searchQuery => {
-    this.setState({
-      gallery: [],
-      searchQuery,
-      page: 1,
-    });
-  };
-
-  handleLoadMore = () => {
-    this.setState(({ gallery, page }) => ({
-      gallery,
-      page: page + 1,
-    }));
-  };
-
-  render() {
-    const { gallery, loading } = this.state;
-    return (
-      <div className={css.App}>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {gallery.length > 0 && <ImageGallery gallery={gallery} />}
-        {loading && <Loader />}
-        {gallery.length > 0 && !loading && (
-          <Button onLoadMore={this.handleLoadMore} />
-        )}
-        <ToastContainer />
-      </div>
-    );
   }
+
+  function handleFormSubmit(query) {
+    if (query !== searchQuery) setGallery([]);
+    setSearchQuery(query);
+    setPage(1);
+  }
+
+  function handleLoadMore() {
+    setPage(page => page + 1);
+  }
+
+  return (
+    <div className={css.App}>
+      <Searchbar onSubmit={handleFormSubmit} />
+      {gallery && gallery.length > 0 && <ImageGallery gallery={gallery} />}
+      {loading && <Loader />}
+      {gallery && gallery.length > 0 && !loading && (
+        <Button onLoadMore={handleLoadMore} />
+      )}
+      <ToastContainer />
+    </div>
+  );
 }
 
-export default App;
+// useReducer version:
+
+// function appReducer(state, action) {
+//   switch (action.type) {
+//     case 'loading':
+//       return { ...state, loading: !state.loading };
+//     case 'setGallery':
+//       console.log(action.gallery);
+//       return { ...state, gallery: action.gallery };
+//     case 'setPage':
+//       console.log(action.page);
+//       return { ...state, page: action.page };
+//     case 'submit':
+//       return {
+//         ...state,
+//         gallery: [],
+//         searchQuery: action.searchQuery,
+//         page: 1,
+//       };
+//     case 'loadMore':
+//       return { ...state, page: state.page + 1 };
+//     default:
+//       throw Error('Unknown action: ' + action.type);
+//   }
+// }
+
+// const initialState = {
+//   searchQuery: '',
+//   page: 1,
+//   gallery: [],
+//   loading: false,
+// };
+
+// export default function App() {
+//   const [{ searchQuery, page, gallery, loading }, dispatch] = useReducer(
+//     appReducer,
+//     initialState
+//   );
+
+//   useEffect(() => {
+//     if (searchQuery === '') {
+//       return;
+//     }
+//     getImages(searchQuery, page);
+//   }, [searchQuery, page]);
+
+//   async function getImages(query, page) {
+//     try {
+//       dispatch({ type: 'loading' });
+//       const response = await API.getImages(query, page);
+//       dispatch({ type: 'setGallery', gallery: [...gallery, ...response.hits] });
+//       dispatch({ type: 'setPage', page });
+//       return response.hits;
+//     } catch (error) {
+//       throw new Error(toast.error(error.message));
+//     } finally {
+//       dispatch({ type: 'loading' });
+//     }
+//   }
+
+//   function handleFormSubmit(searchQuery) {
+//     dispatch({ type: 'submit', searchQuery });
+//   }
+
+//   function handleLoadMore() {
+//     dispatch({ type: 'loadMore' });
+//   }
+
+//   return (
+//     <div className={css.App}>
+//       <Searchbar onSubmit={handleFormSubmit} />
+//       {gallery && gallery.length > 0 && <ImageGallery gallery={gallery} />}
+//       {loading && <Loader />}
+//       {gallery && gallery.length > 0 && !loading && (
+//         <Button onLoadMore={handleLoadMore} />
+//       )}
+//       <ToastContainer />
+//     </div>
+//   );
+// }
