@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Searchbar from '../Searchbar';
 import ImageGallery from '../ImageGallery';
 import Loader from 'components/Loader';
@@ -140,5 +140,3 @@ export default function App() {
 //     </div>
 //   );
 // }
-
-// fix
